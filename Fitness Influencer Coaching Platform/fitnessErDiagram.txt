@@ -1,0 +1,101 @@
+USER {
+    user_id int PK
+    name string
+    email string 
+    password string 
+    role string
+    created_at datetime 
+}
+TRAINER_PROFILE {
+    trainer_id int PK, FK
+    bio string 
+    specialization string 
+    experience_years int 
+}
+CLIENT_PROFILE {
+    client_id int  PK, FK
+    age int 
+    gender string
+    height float 
+    fitness_goal string 
+}
+PLAN {
+    plan_id int PK
+    name string 
+    description string 
+    price float 
+    duration_days int 
+    trainer_id int FK
+}
+SUBSCRIPTION {
+    subscription_id int  PK
+    client_id int FK
+    plan_id int FK
+    start_date date 
+    end_date date 
+    status string 
+}
+SESSION {
+    session_id int PK
+    trainer_id int FK
+    client_id int FK
+    scheduled_at datetime 
+    type string
+    status string 
+}
+CHECKIN {
+    checkin_id int  PK
+    client_id int FK
+    trainer_id int FK
+    checkin_date date 
+    notes string 
+}
+PROGRESS {
+    progress_id int PK
+    client_id int FK
+    recorded_date date 
+    weight float 
+    chest float
+    waist float 
+    hips float
+}
+TRAINER_NOTE {
+    note_id int PK
+    trainer_id int FK
+    client_id int FK
+    note string 
+    created_at datetime 
+}
+PAYMENT {
+    payment_id int PK
+    subscription_id int FK
+    amount float 
+    payment_method string 
+    status string 
+    paid_at datetime 
+}
+
+USER.user_id  - TRAINER_PROFILE.trainer_id
+
+USER.user_id - CLIENT_PROFILE.client_id
+TRAINER_PROFILE.trainer_id  < PLAN.trainer_id
+
+CLIENT_PROFILE.client_id < SUBSCRIPTION.client_id
+
+PLAN.plan_id < SUBSCRIPTION.plan_id
+
+TRAINER_PROFILE.trainer_id < SESSION.trainer_id
+
+CLIENT_PROFILE.client_id  < SESSION.client_id
+
+CLIENT_PROFILE.client_id < CHECKIN.client_id
+
+TRAINER_PROFILE.trainer_id < CHECKIN.trainer_id
+
+CLIENT_PROFILE.client_id < PROGRESS.client_id
+
+TRAINER_PROFILE.trainer_id < TRAINER_NOTE.trainer_id
+
+SUBSCRIPTION.subscription_id < PAYMENT.subscription_id
+
+CLIENT_PROFILE.client_id < TRAINER_NOTE.client_id
