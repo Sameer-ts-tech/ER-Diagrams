@@ -1,0 +1,133 @@
+PATIENT[icon:user,color:blue] {
+    patient_id serial PK
+    name string NOT NULL
+    email string UNIQUE NOT NULL
+    phone string UNIQUE NOT NULL
+    gender enum('male','female','other') NOT NULL
+    date_of_birth date NOT NULL
+    address string
+    created_at datetime NOT NULL
+}
+
+DOCTOR[icon:user,color:blue] {
+    doctor_id serial PK
+    name string NOT NULL
+    email string UNIQUE NOT NULL
+    phone string UNIQUE NOT NULL
+    license_number string UNIQUE NOT NULL
+    experience_years int NOT NULL
+    specialty_id int FK NOT NULL
+}
+
+SPECIALTY[icon:thermometer,color:purple] {
+    specialty_id serial PK
+    name string UNIQUE NOT NULL
+    description string
+}
+
+APPOINTMENT[icon:book-open,color:green] {
+    appointment_id serial PK
+    patient_id int FK NOT NULL
+    doctor_id int FK NOT NULL
+    scheduled_at datetime NOT NULL
+    status enum('booked','cancelled','completed','no_show') NOT NULL
+    reason string
+    created_at datetime NOT NULL
+}
+
+CONSULTATION[icon:calendar,color:yellow] {
+    consultation_id serial PK
+    appointment_id int FK UNIQUE NOT NULL
+    patient_id int FK NOT NULL
+    doctor_id int FK NOT NULL
+    consultation_time datetime NOT NULL
+    symptoms string
+    diagnosis string
+    notes string
+    follow_up_date date
+}
+
+TEST[icon:test-tube,color:yellow] {
+    test_id serial PK
+    name string UNIQUE NOT NULL
+    description string
+    price float NOT NULL
+}
+
+PRESCRIBED_TEST[icon:droplet,color:red] {
+    prescribed_test_id serial PK
+    consultation_id int FK NOT NULL
+    test_id int FK NOT NULL
+    priority enum('normal','urgent') NOT NULL
+    instructions string
+    status enum('pending','completed') NOT NULL
+}
+
+LAB[icon:azure-load-test,color:red] {
+    lab_id serial PK
+    name string NOT NULL
+    location string NOT NULL
+    contact_number string UNIQUE
+}
+
+REPORT[icon:edit,color:blue] {
+    report_id serial PK
+    prescribed_test_id int FK UNIQUE NOT NULL
+    patient_id int FK NOT NULL
+    lab_id int FK NOT NULL
+    generated_at datetime NOT NULL
+    result string
+    remarks string
+    file_url string
+}
+
+PAYMENT[icon:credit-card,color:yellow] {
+    payment_id serial PK
+    appointment_id int FK NOT NULL
+    amount float NOT NULL
+    payment_method enum('cash','card','upi','online') NOT NULL
+    transaction_id string UNIQUE
+    status enum('pending','paid','failed') NOT NULL
+    paid_at datetime
+}
+
+INVOICE[icon:align-left,color:yellow] {
+    invoice_id serial PK
+    appointment_id int FK UNIQUE NOT NULL
+    total_amount float NOT NULL
+    discount float DEFAULT 0
+    final_amount float NOT NULL
+    generated_at datetime NOT NULL
+}
+
+DOCTOR_AVAILABILITY[icon:user-plus,color:green] {
+    availability_id serial PK
+    doctor_id int FK NOT NULL
+    day_of_week enum('mon','tue','wed','thu','fri','sat','sun') NOT NULL
+    start_time time NOT NULL
+    end_time time NOT NULL
+}
+
+
+PATIENT.patient_id < APPOINTMENT.patient_id
+DOCTOR.doctor_id < APPOINTMENT.doctor_id
+
+APPOINTMENT.appointment_id - CONSULTATION.appointment_id
+
+PATIENT.patient_id < CONSULTATION.patient_id
+DOCTOR.doctor_id < CONSULTATION.doctor_id
+
+SPECIALTY.specialty_id < DOCTOR.specialty_id
+
+CONSULTATION.consultation_id < PRESCRIBED_TEST.consultation_id
+TEST.test_id < PRESCRIBED_TEST.test_id
+
+PRESCRIBED_TEST.prescribed_test_id - REPORT.prescribed_test_id
+
+PATIENT.patient_id < REPORT.patient_id
+LAB.lab_id < REPORT.lab_id
+
+APPOINTMENT.appointment_id < PAYMENT.appointment_id
+APPOINTMENT.appointment_id - INVOICE.appointment_id
+
+DOCTOR.doctor_id < DOCTOR_AVAILABILITY.doctor_id
