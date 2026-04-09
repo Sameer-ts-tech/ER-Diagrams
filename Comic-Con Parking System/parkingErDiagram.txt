@@ -1,0 +1,84 @@
+
+VEHICLE[icon:truck,color:blue] {
+    vehicle_id serial PK
+    vehicle_number string UNIQUE NOT NULL
+    vehicle_type_id int FK NOT NULL
+    owner_name string
+    contact_number string
+}
+
+VEHICLE_TYPE[icon:settings,color:purple] {
+    vehicle_type_id serial PK
+    type_name enum('bike','car','suv','cab','ev') UNIQUE NOT NULL
+}
+
+ACCESS_CATEGORY[icon:user-check,color:green] {
+    access_category_id serial PK
+    name enum('general','vip','staff','exhibitor','cosplayer') UNIQUE NOT NULL
+    description string
+}
+
+PARKING_ZONE[icon:map,color:yellow] {
+    zone_id serial PK
+    zone_name string NOT NULL
+    level int NOT NULL
+}
+
+PARKING_SPOT[icon:circle,color:blue] {
+    spot_id serial PK
+    zone_id int FK NOT NULL
+    spot_number string NOT NULL
+    spot_type enum('bike','car','suv','ev') NOT NULL
+    access_category_id int FK
+    is_available boolean NOT NULL
+}
+
+PARKING_TICKET[icon:file-text,color:yellow] {
+    ticket_id serial PK
+    ticket_number string UNIQUE NOT NULL
+    issue_time datetime NOT NULL
+}
+
+PARKING_SESSION[icon:clock,color:green] {
+    session_id serial PK
+    vehicle_id int FK NOT NULL
+    ticket_id int FK UNIQUE NOT NULL
+    spot_id int FK NOT NULL
+    access_category_id int FK
+    entry_time datetime NOT NULL
+    exit_time datetime
+    status enum('active','completed') NOT NULL
+}
+
+PAYMENT[icon:credit-card,color:red] {
+    payment_id serial PK
+    session_id int FK UNIQUE NOT NULL
+    amount float NOT NULL
+    payment_method enum('cash','card','upi','online') NOT NULL
+    status enum('pending','paid','failed') NOT NULL
+    paid_at datetime
+}
+
+PARKING_RATE[icon:dollar-sign,color:purple] {
+    rate_id serial PK
+    vehicle_type_id int FK NOT NULL
+    hourly_rate float NOT NULL
+}
+
+
+VEHICLE_TYPE.vehicle_type_id < VEHICLE.vehicle_type_id
+
+ACCESS_CATEGORY.access_category_id < PARKING_SPOT.access_category_id
+ACCESS_CATEGORY.access_category_id < PARKING_SESSION.access_category_id
+
+PARKING_ZONE.zone_id < PARKING_SPOT.zone_id
+
+VEHICLE.vehicle_id < PARKING_SESSION.vehicle_id
+
+PARKING_TICKET.ticket_id - PARKING_SESSION.ticket_id
+
+PARKING_SPOT.spot_id < PARKING_SESSION.spot_id
+
+PARKING_SESSION.session_id - PAYMENT.session_id
+
+VEHICLE_TYPE.vehicle_type_id < PARKING_RATE.vehicle_type_id
