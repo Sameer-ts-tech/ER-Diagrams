@@ -1,0 +1,163 @@
+
+BUILDING[icon:building,color:blue] {
+    building_id serial PK
+    name string NOT NULL
+    location string NOT NULL
+    type enum('corporate','mall','airport','hospital','residential') NOT NULL
+    total_floors int NOT NULL
+    created_at datetime NOT NULL
+}
+
+FLOOR[icon:layers,color:purple] {
+    floor_id serial PK
+    building_id int FK NOT NULL
+    floor_number int NOT NULL
+    is_active boolean NOT NULL
+}
+
+ELEVATOR_GROUP[icon:grid,color:yellow] {
+    group_id serial PK
+    building_id int FK NOT NULL
+    group_name string NOT NULL
+    zone_start_floor int NOT NULL
+    zone_end_floor int NOT NULL
+}
+
+ELEVATOR_SHAFT[icon:columns,color:orange] {
+    shaft_id serial PK
+    building_id int FK NOT NULL
+    shaft_number string NOT NULL
+    group_id int FK
+}
+
+ELEVATOR[icon:move-vertical,color:green] {
+    elevator_id serial PK
+    shaft_id int FK UNIQUE NOT NULL
+    building_id int FK NOT NULL
+    group_id int FK
+    capacity int NOT NULL
+    current_floor_id int FK
+    direction enum('up','down','idle') NOT NULL
+    is_operational boolean NOT NULL
+    installed_at datetime
+}
+
+ELEVATOR_FLOOR[icon:shuffle,color:blue] {
+    id serial PK
+    elevator_id int FK NOT NULL
+    floor_id int FK NOT NULL
+}
+
+ELEVATOR_STATUS_LOG[icon:activity,color:red] {
+    status_log_id serial PK
+    elevator_id int FK NOT NULL
+    status enum('idle','moving','stopped','maintenance','out_of_service') NOT NULL
+    recorded_at datetime NOT NULL
+}
+
+FLOOR_REQUEST[icon:arrow-up-circle,color:yellow] {
+    request_id serial PK
+    building_id int FK NOT NULL
+    source_floor_id int FK NOT NULL
+    direction enum('up','down') NOT NULL
+    requested_at datetime NOT NULL
+    status enum('pending','batched','assigned','completed','cancelled','failed') NOT NULL
+}
+
+DESTINATION_REQUEST[icon:map-pin,color:purple] {
+    destination_id serial PK
+    request_id int FK NOT NULL
+    destination_floor_id int FK NOT NULL
+}
+
+RIDE_ASSIGNMENT[icon:link,color:green] {
+    assignment_id serial PK
+    request_id int FK UNIQUE NOT NULL
+    elevator_id int FK NOT NULL
+    assigned_at datetime NOT NULL
+    assignment_strategy string
+}
+
+RIDE[icon:truck,color:blue] {
+    ride_id serial PK
+    elevator_id int FK NOT NULL
+    request_id int FK NOT NULL
+    start_time datetime NOT NULL
+    end_time datetime
+    start_floor_id int FK NOT NULL
+    end_floor_id int FK
+    status enum('in_progress','completed','interrupted','failed') NOT NULL
+}
+
+RIDE_STOP[icon:pause-circle,color:orange] {
+    stop_id serial PK
+    ride_id int FK NOT NULL
+    floor_id int FK NOT NULL
+    stop_order int NOT NULL
+    arrival_time datetime
+    departure_time datetime
+}
+
+MAINTENANCE[icon:tool,color:red] {
+    maintenance_id serial PK
+    elevator_id int FK NOT NULL
+    issue string NOT NULL
+    severity enum('low','medium','high','critical') NOT NULL
+    status enum('scheduled','in_progress','completed') NOT NULL
+    started_at datetime NOT NULL
+    completed_at datetime
+}
+
+MAINTENANCE_LOG[icon:file-text,color:gray] {
+    log_id serial PK
+    maintenance_id int FK NOT NULL
+    update_note string
+    updated_at datetime NOT NULL
+}
+
+ALERT[icon:alert-triangle,color:red] {
+    alert_id serial PK
+    elevator_id int FK
+    building_id int FK
+    type enum('overload','failure','emergency','delay') NOT NULL
+    message string NOT NULL
+    created_at datetime NOT NULL
+    resolved boolean NOT NULL
+}
+
+
+BUILDING.building_id < FLOOR.building_id
+BUILDING.building_id < ELEVATOR_GROUP.building_id
+BUILDING.building_id < ELEVATOR_SHAFT.building_id
+BUILDING.building_id < ELEVATOR.building_id
+
+ELEVATOR_GROUP.group_id < ELEVATOR.group_id
+ELEVATOR_GROUP.group_id < ELEVATOR_SHAFT.group_id
+
+ELEVATOR_SHAFT.shaft_id - ELEVATOR.shaft_id
+
+ELEVATOR.elevator_id < ELEVATOR_FLOOR.elevator_id
+FLOOR.floor_id < ELEVATOR_FLOOR.floor_id
+
+ELEVATOR.elevator_id < ELEVATOR_STATUS_LOG.elevator_id
+
+FLOOR.floor_id < FLOOR_REQUEST.source_floor_id
+BUILDING.building_id < FLOOR_REQUEST.building_id
+
+FLOOR_REQUEST.request_id < DESTINATION_REQUEST.request_id
+FLOOR.floor_id < DESTINATION_REQUEST.destination_floor_id
+
+FLOOR_REQUEST.request_id - RIDE_ASSIGNMENT.request_id
+ELEVATOR.elevator_id < RIDE_ASSIGNMENT.elevator_id
+
+ELEVATOR.elevator_id < RIDE.elevator_id
+FLOOR_REQUEST.request_id < RIDE.request_id
+
+RIDE.ride_id < RIDE_STOP.ride_id
+FLOOR.floor_id < RIDE_STOP.floor_id
+
+ELEVATOR.elevator_id < MAINTENANCE.elevator_id
+MAINTENANCE.maintenance_id < MAINTENANCE_LOG.maintenance_id
+
+ELEVATOR.elevator_id < ALERT.elevator_id
+BUILDING.building_id < ALERT.building_id
